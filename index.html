@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MrVilz — Follow The Wild</title>
+    <link rel="icon" type="image/png" href="mrVilz_logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Rye&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Bebas+Neue&display=swap"
+        rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        :root {
+            --white: #ffffff;
+            --cream: #faf8f4;
+            --ivory: #f5f0e6;
+            --parchment: #ede5d0;
+            --red: #c8000a;
+            --red-mid: #e8131f;
+            --red-light: #ff3a44;
+            --ink: #1a1008;
+            --brown: #3d2b1f;
+            --brown-lt: #6b4c35;
+            --taupe: #a08060;
+            --green: #3a7d44;
+            --green-lt: #5aad64;
+            --gold: #b8973a;
+        }
+
+        html {
+            scroll-behavior: smooth
+        }
+
+        body {
+            background: var(--cream);
+            color: var(--ink);
+            font-family: 'Cormorant Garamond', serif;
+            overflow-x: hidden;
+            min-height: 100vh
+        }
+
+        /* ─── Scroll Progress ─── */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            width: 100%;
+            background: linear-gradient(90deg, var(--red), var(--red-light));
+            z-index: 9999;
+            transform-origin: left;
+            transform: scaleX(0);
+            transition: transform 0.1s linear
+        }
+
+        /* ─── Background Canvas ─── */
+        #bgCanvas {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.4
+        }
+
+        /* ─── Border Frame ─── */
+        .border-frame {
+            position: fixed;
+            inset: 18px;
+            border: 1px solid rgba(200, 0, 10, 0.18);
+            pointer-events: none;
+            z-index: 10
+        }
+
+        .border-frame::before {
+            content: '';
+            position: absolute;
+            inset: 6px;
+            border: 1px solid rgba(200, 0, 10, 0.07)
+        }
+
+        /* ─── Corners ─── */
+        .corner {
+            position: fixed;
+            width: 48px;
+            height: 48px;
+            z-index: 11;
+            pointer-events: none
+        }
+
+        .corner svg {
+            width: 100%;
+            height: 100%
+        }
+
+        .corner-tl {
+            top: 10px;
+            left: 10px
+        }
+
+        .corner-tr {
+            top: 10px;
+            right: 10px;
+            transform: scaleX(-1)
+        }
+
+        .corner-bl {
+            bottom: 10px;
+            left: 10px;
+            transform: scaleY(-1)
+        }
+
+        .corner-br {
+            bottom: 10px;
+            right: 10px;
+            transform: scale(-1)
+        }
+
+        /* ─── Page Wrapper ─── */
+        .page-wrapper {
+            position: relative;
+            z-index: 2;
+            min-height: 100vh
+        }
+
+        .hero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 80px 40px 70px;
+            position: relative
+        }
+
+        /* ─── Watermark ─── */
+        .hero-watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(110px, 20vw, 260px);
+            color: transparent;
+            -webkit-text-stroke: 1px rgba(200, 0, 10, 0.045);
+            letter-spacing: 0.18em;
+            white-space: nowrap;
+            user-select: none;
+            pointer-events: none;
+            animation: drift 18s ease-in-out infinite
+        }
+
+        @keyframes drift {
+
+            0%,
+            100% {
+                transform: translate(-50%, -50%) scale(1)
+            }
+
+            50% {
+                transform: translate(-50%, -50%) scale(1.04)
+            }
+        }
+
+        /* ─── Top Tag ─── */
+        .top-tag {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 36px;
+            opacity: 0;
+            animation: riseIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.2s forwards
+        }
+
+        .tag-line {
+            width: 60px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--taupe))
+        }
+
+        .tag-line.right {
+            background: linear-gradient(90deg, var(--taupe), transparent)
+        }
+
+        .tag-text {
+            font-size: 0.6rem;
+            letter-spacing: 0.42em;
+            text-transform: uppercase;
+            color: var(--taupe);
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 300
+        }
+
+        /* ─── Logo ─── */
+        .logo-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 4px;
+            opacity: 0;
+            animation: logoReveal 1.2s cubic-bezier(0.22, 1, 0.36, 1) 0.5s forwards
+        }
+
+        @keyframes logoReveal {
+            from {
+                opacity: 0;
+                transform: scale(0.86) translateY(22px)
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0)
+            }
+        }
+
+        .logo-halo {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 340px;
+            height: 340px;
+            border-radius: 50%;
+            background: radial-gradient(ellipse, rgba(200, 0, 10, 0.07) 0%, rgba(200, 0, 10, 0.02) 45%, transparent 70%);
+            animation: haloPulse 5s ease-in-out infinite;
+            pointer-events: none
+        }
+
+        @keyframes haloPulse {
+
+            0%,
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.7
+            }
+
+            50% {
+                transform: translate(-50%, -50%) scale(1.14);
+                opacity: 1
+            }
+        }
+
+        .logo-rings {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            pointer-events: none
+        }
+
+        .logo-rings span {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid rgba(200, 0, 10, 0.09);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: ringExpand 4s ease-out infinite
+        }
+
+        .logo-rings span:nth-child(1) {
+            width: 270px;
+            height: 270px;
+            animation-delay: 0s
+        }
+
+        .logo-rings span:nth-child(2) {
+            width: 330px;
+            height: 330px;
+            animation-delay: 1.3s
+        }
+
+        .logo-rings span:nth-child(3) {
+            width: 390px;
+            height: 390px;
+            animation-delay: 2.6s
+        }
+
+        @keyframes ringExpand {
+            0% {
+                opacity: 0.6;
+                transform: translate(-50%, -50%) scale(0.8)
+            }
+
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(1.2)
+            }
+        }
+
+        .logo-img {
+            width: min(210px, 46vw);
+            position: relative;
+            z-index: 2;
+            filter: drop-shadow(0 8px 28px rgba(200, 0, 10, 0.18)) drop-shadow(0 2px 8px rgba(26, 16, 8, 0.12));
+            animation: logoFloat 7s ease-in-out infinite 2s;
+            transition: transform 0.1s ease-out
+        }
+
+        @keyframes logoFloat {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(-0.5deg)
+            }
+
+            50% {
+                transform: translateY(-11px) rotate(0.5deg)
+            }
+        }
+
+        /* ─── Brand Name ─── */
+        .brand-name {
+            font-family: 'Rye', serif;
+            font-size: clamp(3rem, 10vw, 6.5rem);
+            color: var(--ink);
+            letter-spacing: 0.04em;
+            line-height: 1;
+            margin-bottom: 4px;
+            position: relative;
+            opacity: 0;
+            animation: riseIn 1s cubic-bezier(0.22, 1, 0.36, 1) 0.9s forwards
+        }
+
+        .brand-name .letter {
+            display: inline-block;
+            transition: color 0.2s, transform 0.3s;
+            cursor: default
+        }
+
+        .brand-name .letter:hover {
+            color: var(--red);
+            transform: translateY(-5px)
+        }
+
+        .brand-name::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--red), var(--red-mid), transparent);
+            transform: scaleX(0);
+            transform-origin: left;
+            animation: swoosh 0.8s cubic-bezier(0.22, 1, 0.36, 1) 1.6s forwards
+        }
+
+        @keyframes swoosh {
+            to {
+                transform: scaleX(1)
+            }
+        }
+
+        /* ─── Ornament Divider ─── */
+        .ornament-divider {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            width: min(460px, 82vw);
+            margin: 28px auto 22px;
+            opacity: 0;
+            animation: riseIn 0.8s ease 1.3s forwards
+        }
+
+        .orn-line {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--parchment), var(--taupe))
+        }
+
+        .orn-line.r {
+            background: linear-gradient(90deg, var(--taupe), var(--parchment), transparent)
+        }
+
+        .orn-center {
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .orn-diamond {
+            width: 7px;
+            height: 7px;
+            background: var(--red);
+            transform: rotate(45deg);
+            box-shadow: 0 0 8px rgba(200, 0, 10, 0.45)
+        }
+
+        .orn-dot {
+            width: 4px;
+            height: 4px;
+            background: var(--taupe);
+            border-radius: 50%
+        }
+
+        /* ─── Tagline ─── */
+        .tagline-block {
+            text-align: center;
+            margin-bottom: 44px;
+            opacity: 0;
+            animation: riseIn 0.8s ease 1.5s forwards
+        }
+
+        .tagline-main {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: clamp(1.45rem, 4.2vw, 2.3rem);
+            font-weight: 400;
+            color: var(--ink);
+            letter-spacing: 0.01em;
+            line-height: 1.25;
+            display: block;
+            margin-bottom: 12px
+        }
+
+        .tagline-main em {
+            color: var(--red);
+            font-style: normal
+        }
+
+        .tagline-sub {
+            font-size: clamp(0.7rem, 1.9vw, 0.82rem);
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--taupe);
+            font-weight: 300;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px
+        }
+
+        .tagline-sub::before,
+        .tagline-sub::after {
+            content: '';
+            width: 22px;
+            height: 1px;
+            background: var(--taupe);
+            opacity: 0.5
+        }
+
+        /* ─── Social Cards ─── */
+        .socials-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            width: min(520px, 90vw);
+            opacity: 0;
+            animation: riseIn 0.9s ease 1.8s forwards
+        }
+
+        .social-card {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 26px 18px 20px;
+            text-decoration: none;
+            color: var(--ink);
+            background: var(--white);
+            border: 1px solid rgba(61, 43, 31, 0.1);
+            overflow: hidden;
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.35s ease, border-color 0.3s
+        }
+
+        .social-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle, rgba(200, 0, 10, 0.04) 1px, transparent 1px);
+            background-size: 22px 22px;
+            opacity: 0;
+            transition: opacity 0.4s
+        }
+
+        .social-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--card-color, var(--red));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1)
+        }
+
+        .social-card:hover {
+            transform: translateY(-8px) scale(1.025);
+            box-shadow: 0 22px 52px rgba(26, 16, 8, 0.11), 0 4px 16px rgba(200, 0, 10, 0.07);
+            border-color: rgba(200, 0, 10, 0.2)
+        }
+
+        .social-card:hover::before {
+            opacity: 1
+        }
+
+        .social-card:hover::after {
+            transform: scaleX(1)
+        }
+
+        .card-fb {
+            --card-color: #1877f2
+        }
+
+        .card-ig {
+            --card-color: #e1306c
+        }
+
+        .card-tt {
+            --card-color: #010101
+        }
+
+        .card-yt {
+            --card-color: #ff0000
+        }
+
+        .card-icon-wrap {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--card-color, #ccc);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.14);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            flex-shrink: 0
+        }
+
+        .social-card:hover .card-icon-wrap {
+            transform: scale(1.12) rotate(-5deg)
+        }
+
+        .card-icon-wrap svg {
+            width: 26px;
+            height: 26px
+        }
+
+        .card-ig .card-icon-wrap {
+            background: linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)
+        }
+
+        .card-platform {
+            font-size: 0.57rem;
+            letter-spacing: 0.35em;
+            text-transform: uppercase;
+            color: var(--taupe);
+            font-weight: 300
+        }
+
+        .card-handle {
+            font-family: 'Playfair Display', serif;
+            font-size: 0.92rem;
+            font-weight: 700;
+            color: var(--ink);
+            letter-spacing: 0.02em
+        }
+
+        .card-follow-btn {
+            margin-top: 2px;
+            padding: 6px 20px;
+            font-size: 0.57rem;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 600;
+            color: var(--white);
+            background: var(--ink);
+            border: none;
+            transition: background 0.25s;
+            pointer-events: none
+        }
+
+        .social-card:hover .card-follow-btn {
+            background: var(--red)
+        }
+
+        /* ─── Counter ─── */
+        .counter-section {
+            margin-top: 56px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            opacity: 0;
+            animation: riseIn 0.8s ease 2.3s forwards;
+            position: relative
+        }
+
+        .counter-section::before {
+            content: '';
+            position: absolute;
+            top: -26px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 1px;
+            height: 18px;
+            background: linear-gradient(to bottom, transparent, var(--taupe))
+        }
+
+        .counter-label-top {
+            font-size: 0.6rem;
+            letter-spacing: 0.4em;
+            text-transform: uppercase;
+            color: var(--taupe);
+            font-weight: 300
+        }
+
+        .counter-display {
+            display: flex;
+            align-items: baseline;
+            gap: 8px
+        }
+
+        .counter-num {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(3.5rem, 10vw, 5.5rem);
+            color: var(--green);
+            line-height: 1;
+            letter-spacing: 0.04em;
+            text-shadow: 0 2px 20px rgba(58, 125, 68, 0.22)
+        }
+
+        .counter-unit {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1rem;
+            font-weight: 300;
+            color: var(--green-lt);
+            letter-spacing: 0.2em;
+            text-transform: uppercase
+        }
+
+        .counter-sublabel {
+            font-size: 0.68rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--taupe);
+            font-weight: 300;
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .tree-icons {
+            display: flex;
+            gap: 4px
+        }
+
+        .tree-icon {
+            font-size: 0.85rem;
+            animation: treeSway 3s ease-in-out infinite
+        }
+
+        .tree-icon:nth-child(2) {
+            animation-delay: 0.4s
+        }
+
+        .tree-icon:nth-child(3) {
+            animation-delay: 0.8s
+        }
+
+        .tree-icon:nth-child(4) {
+            animation-delay: 1.2s
+        }
+
+        .tree-icon:nth-child(5) {
+            animation-delay: 1.6s
+        }
+
+        @keyframes treeSway {
+
+            0%,
+            100% {
+                transform: rotate(0deg)
+            }
+
+            25% {
+                transform: rotate(3deg)
+            }
+
+            75% {
+                transform: rotate(-3deg)
+            }
+        }
+
+        /* ─── FOOTER ─── */
+        .footer {
+            margin-top: 60px;
+            padding-bottom: 50px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+            opacity: 0;
+            animation: riseIn 0.8s ease 2.7s forwards
+        }
+
+        .footer-strip {
+            width: min(520px, 90vw);
+            background: var(--ink);
+            padding: 28px 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+            overflow: hidden
+        }
+
+        .footer-strip::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--red), var(--red-light), var(--red))
+        }
+
+        .footer-strip::after {
+            content: 'MRVILZ';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 5rem;
+            color: rgba(255, 255, 255, 0.03);
+            letter-spacing: 0.3em;
+            white-space: nowrap;
+            pointer-events: none;
+            user-select: none
+        }
+
+        .footer-logo-name {
+            font-family: 'Rye', serif;
+            font-size: 1.6rem;
+            color: var(--white);
+            letter-spacing: 0.08em;
+            position: relative;
+            z-index: 1
+        }
+
+        .footer-logo-name span {
+            color: var(--red)
+        }
+
+        .footer-divider-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            position: relative;
+            z-index: 1
+        }
+
+        .footer-divider-line {
+            flex: 1;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.12)
+        }
+
+        .footer-divider-diamond {
+            width: 6px;
+            height: 6px;
+            background: var(--red);
+            transform: rotate(45deg);
+            flex-shrink: 0
+        }
+
+        .footer-socials-row {
+            display: flex;
+            gap: 16px;
+            position: relative;
+            z-index: 1
+        }
+
+        .footer-social-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: background 0.25s, transform 0.25s
+        }
+
+        .footer-social-icon:hover {
+            background: var(--red);
+            transform: translateY(-3px)
+        }
+
+        .footer-social-icon svg {
+            width: 14px;
+            height: 14px;
+            fill: rgba(255, 255, 255, 0.7)
+        }
+
+        .footer-social-icon:hover svg {
+            fill: white
+        }
+
+        .footer-copy {
+            font-size: 0.6rem;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.35);
+            font-weight: 300;
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            line-height: 1.8
+        }
+
+        .footer-copy strong {
+            color: rgba(255, 255, 255, 0.65);
+            font-weight: 400
+        }
+
+        .footer-tagline-foot {
+            font-size: 0.58rem;
+            letter-spacing: 0.2em;
+            color: rgba(255, 255, 255, 0.2);
+            text-transform: uppercase;
+            font-style: italic;
+            position: relative;
+            z-index: 1
+        }
+
+        /* ─── Ripple ─── */
+        .ripple-fx {
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%) scale(0);
+            animation: ripple 0.8s ease-out forwards;
+            border: 1.5px solid rgba(200, 0, 10, 0.25);
+            background: rgba(200, 0, 10, 0.04)
+        }
+
+        @keyframes ripple {
+            to {
+                transform: translate(-50%, -50%) scale(7);
+                opacity: 0
+            }
+        }
+
+        /* ─── Global animation ─── */
+        @keyframes riseIn {
+            from {
+                opacity: 0;
+                transform: translateY(24px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        /* ─── Responsive ─── */
+        @media(max-width:500px) {
+            .socials-grid {
+                grid-template-columns: 1fr;
+                width: min(300px, 88vw)
+            }
+
+            .border-frame {
+                inset: 8px
+            }
+
+            .hero {
+                padding: 70px 20px 50px
+            }
+
+            .logo-rings span {
+                display: none
+            }
+
+            .footer-strip {
+                padding: 24px 20px
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="progress-bar" id="progressBar"></div>
+    <div class="border-frame"></div>
+
+    <!-- Corner ornaments -->
+    <div class="corner corner-tl"><svg viewBox="0 0 50 50" fill="none">
+            <path d="M3 3 L3 22 M3 3 L22 3" stroke="rgba(200,0,10,0.38)" stroke-width="1.5" stroke-linecap="round" />
+            <circle cx="3" cy="3" r="2.5" fill="rgba(200,0,10,0.5)" />
+        </svg></div>
+    <div class="corner corner-tr"><svg viewBox="0 0 50 50" fill="none">
+            <path d="M3 3 L3 22 M3 3 L22 3" stroke="rgba(200,0,10,0.38)" stroke-width="1.5" stroke-linecap="round" />
+            <circle cx="3" cy="3" r="2.5" fill="rgba(200,0,10,0.5)" />
+        </svg></div>
+    <div class="corner corner-bl"><svg viewBox="0 0 50 50" fill="none">
+            <path d="M3 3 L3 22 M3 3 L22 3" stroke="rgba(200,0,10,0.38)" stroke-width="1.5" stroke-linecap="round" />
+            <circle cx="3" cy="3" r="2.5" fill="rgba(200,0,10,0.5)" />
+        </svg></div>
+    <div class="corner corner-br"><svg viewBox="0 0 50 50" fill="none">
+            <path d="M3 3 L3 22 M3 3 L22 3" stroke="rgba(200,0,10,0.38)" stroke-width="1.5" stroke-linecap="round" />
+            <circle cx="3" cy="3" r="2.5" fill="rgba(200,0,10,0.5)" />
+        </svg></div>
+
+    <canvas id="bgCanvas"></canvas>
+
+    <div class="page-wrapper">
+        <main class="hero">
+
+            <div class="hero-watermark" aria-hidden="true">VILZ</div>
+
+            <div class="top-tag">
+                <div class="tag-line"></div>
+                <span class="tag-text">Est. 2024 · The Wild West Lives</span>
+                <div class="tag-line right"></div>
+            </div>
+
+            <div class="logo-container">
+                <div class="logo-halo"></div>
+                <div class="logo-rings"><span></span><span></span><span></span></div>
+                <img class="logo-img" id="logoImg" src="mrVilz_logo.png" alt="MrVilz — Bull skull with red bandana">
+            </div>
+
+            <h1 class="brand-name" id="brandName">MrVilz</h1>
+
+            <div class="ornament-divider">
+                <div class="orn-line"></div>
+                <div class="orn-center">
+                    <div class="orn-dot"></div>
+                    <div class="orn-diamond"></div>
+                    <div class="orn-dot"></div>
+                </div>
+                <div class="orn-line r"></div>
+            </div>
+
+            <div class="tagline-block">
+                <span class="tagline-main">Follow Us &amp; Watch the <em>World Grow</em></span>
+                <span class="tagline-sub">🌱 Your one follow plants one tree into this world 🌱</span>
+            </div>
+
+            <div class="socials-grid">
+
+                <a class="social-card card-fb" href="https://www.facebook.com/share/1HR7xXAHzX/?mibextid=wwXIfr"
+                    target="_blank" rel="noopener noreferrer">
+                    <div class="card-icon-wrap">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3V2z"
+                                fill="white" />
+                        </svg>
+                    </div>
+                    <span class="card-platform">Facebook</span>
+                    <span class="card-handle">MrVilz</span>
+                    <div class="card-follow-btn">Follow</div>
+                </a>
+
+                <a class="social-card card-ig" href="https://www.instagram.com/mr.vilz_?igsh=cmFqbmk4OXJpcGhh"
+                    target="_blank" rel="noopener noreferrer">
+                    <div class="card-icon-wrap">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <rect x="2" y="2" width="20" height="20" rx="5" ry="5" stroke="white" stroke-width="2" />
+                            <circle cx="12" cy="12" r="4" stroke="white" stroke-width="2" />
+                            <circle cx="17.5" cy="6.5" r="1.3" fill="white" />
+                        </svg>
+                    </div>
+                    <span class="card-platform">Instagram</span>
+                    <span class="card-handle">@mr.vilz_</span>
+                    <div class="card-follow-btn">Follow</div>
+                </a>
+
+                <a class="social-card card-tt" href="https://www.tiktok.com/@mr_vilz?_r=1&amp;_t=ZS-94eGFkS1Xee"
+                    target="_blank" rel="noopener noreferrer">
+                    <div class="card-icon-wrap">
+                        <svg viewBox="0 0 24 24" fill="white">
+                            <path
+                                d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z" />
+                        </svg>
+                    </div>
+                    <span class="card-platform">TikTok</span>
+                    <span class="card-handle">@mr_vilz</span>
+                    <div class="card-follow-btn">Follow</div>
+                </a>
+
+                <a class="social-card card-yt" href="https://youtube.com/@mr_vilz?si=Oqw2pZK1VhXtwWwQ" target="_blank"
+                    rel="noopener noreferrer">
+                    <div class="card-icon-wrap">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path
+                                d="M22.54 6.42C22.27 5.36 21.45 4.53 20.4 4.26 18.64 3.8 12 3.8 12 3.8s-6.64 0-8.4.46C2.55 4.53 1.73 5.36 1.46 6.42 1 8.2 1 12 1 12s0 3.8.46 5.58c.27 1.06 1.09 1.86 2.14 2.12C5.36 20.2 12 20.2 12 20.2s6.64 0 8.4-.5c1.05-.26 1.87-1.06 2.14-2.12C23 15.8 23 12 23 12s0-3.8-.46-5.58z"
+                                fill="white" />
+                            <polygon points="9.75,15.02 15.5,12 9.75,8.98" fill="#ff0000" />
+                        </svg>
+                    </div>
+                    <span class="card-platform">YouTube</span>
+                    <span class="card-handle">@mr_vilz</span>
+                    <div class="card-follow-btn">Subscribe</div>
+                </a>
+
+            </div>
+
+            <div class="counter-section">
+                <div class="counter-label-top">Community Impact</div>
+                <div class="counter-display">
+                    <span class="counter-num" id="counterNum">0</span>
+                    <span class="counter-unit">Trees</span>
+                </div>
+                <div class="counter-sublabel">
+                    <div class="tree-icons">
+                        <span class="tree-icon">🌲</span>
+                        <span class="tree-icon">🌳</span>
+                        <span class="tree-icon">🌲</span>
+                        <span class="tree-icon">🌳</span>
+                        <span class="tree-icon">🌲</span>
+                    </div>
+                    Planted &amp; growing worldwide
+                </div>
+            </div>
+
+            <!-- FOOTER -->
+            <footer class="footer">
+                <div class="footer-strip">
+
+                    <div class="footer-logo-name">Mr<span>Vilz</span></div>
+
+                    <div class="footer-divider-row">
+                        <div class="footer-divider-line"></div>
+                        <div class="footer-divider-diamond"></div>
+                        <div class="footer-divider-line"></div>
+                    </div>
+
+                    <div class="footer-socials-row">
+                        <a class="footer-social-icon" href="https://www.facebook.com/share/1HR7xXAHzX/?mibextid=wwXIfr"
+                            target="_blank" rel="noopener" title="Facebook">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3V2z" />
+                            </svg>
+                        </a>
+                        <a class="footer-social-icon" href="https://www.instagram.com/mr.vilz_?igsh=cmFqbmk4OXJpcGhh"
+                            target="_blank" rel="noopener" title="Instagram">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <rect x="2" y="2" width="20" height="20" rx="5" stroke="rgba(255,255,255,0.7)"
+                                    stroke-width="2" />
+                                <circle cx="12" cy="12" r="4" stroke="rgba(255,255,255,0.7)" stroke-width="2" />
+                                <circle cx="17.5" cy="6.5" r="1.3" fill="rgba(255,255,255,0.7)" />
+                            </svg>
+                        </a>
+                        <a class="footer-social-icon" href="https://www.tiktok.com/@mr_vilz" target="_blank"
+                            rel="noopener" title="TikTok">
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z" />
+                            </svg>
+                        </a>
+                        <a class="footer-social-icon" href="https://youtube.com/@mr_vilz" target="_blank" rel="noopener"
+                            title="YouTube">
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M22.54 6.42C22.27 5.36 21.45 4.53 20.4 4.26 18.64 3.8 12 3.8 12 3.8s-6.64 0-8.4.46C2.55 4.53 1.73 5.36 1.46 6.42 1 8.2 1 12 1 12s0 3.8.46 5.58c.27 1.06 1.09 1.86 2.14 2.12C5.36 20.2 12 20.2 12 20.2s6.64 0 8.4-.5c1.05-.26 1.87-1.06 2.14-2.12C23 15.8 23 12 23 12s0-3.8-.46-5.58z" />
+                                <polygon points="9.75,15.02 15.5,12 9.75,8.98" fill="var(--red)" />
+                            </svg>
+                        </a>
+                    </div>
+
+                    <div class="footer-copy">
+                        <strong>© <span id="copyrightYear"></span> MrVilz</strong> · All Rights Reserved<br>
+                        One Follow · One Tree · One World
+                    </div>
+                    <div class="footer-tagline-foot">Wild &amp; Free · The Wild West Lives</div>
+
+                </div>
+            </footer>
+
+        </main>
+    </div>
+
+    <script>
+        /* ─── Auto year ─── */
+        document.getElementById('copyrightYear').textContent = new Date().getFullYear();
+
+        /* ─── Scroll progress ─── */
+        window.addEventListener('scroll', () => {
+            const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight) || 0;
+            document.getElementById('progressBar').style.transform = `scaleX(${pct})`;
+        });
+
+        /* ─── Brand name letter split ─── */
+        const nameEl = document.getElementById('brandName');
+        nameEl.innerHTML = nameEl.textContent.split('').map(ch => `<span class="letter">${ch}</span>`).join('');
+
+        /* ─── Logo parallax ─── */
+        const logoImg = document.getElementById('logoImg');
+        document.addEventListener('mousemove', e => {
+            const xOff = (e.clientX / window.innerWidth - 0.5) * 12;
+            const yOff = (e.clientY / window.innerHeight - 0.5) * 8;
+            logoImg.style.transform = `rotate(${xOff * 0.06}deg) translate(${xOff * 0.25}px,${yOff * 0.25}px)`;
+        });
+
+        /* ─── Click ripple ─── */
+        document.addEventListener('click', e => {
+            const r = document.createElement('div');
+            r.className = 'ripple-fx';
+            r.style.cssText = `left:${e.clientX}px;top:${e.clientY}px;width:70px;height:70px`;
+            document.body.appendChild(r);
+            r.addEventListener('animationend', () => r.remove());
+        });
+
+        /* ─── Background floating petals ─── */
+        const canvas = document.getElementById('bgCanvas');
+        const ctx = canvas.getContext('2d');
+        let W, H;
+        function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+        resize(); window.addEventListener('resize', resize);
+        class Petal {
+            constructor(init) { this.reset(init) }
+            reset(init) {
+                this.x = Math.random() * W;
+                this.y = init ? Math.random() * H : -20;
+                this.size = Math.random() * 4 + 1.5;
+                this.vy = Math.random() * 0.38 + 0.14;
+                this.vx = (Math.random() - 0.5) * 0.28;
+                this.angle = Math.random() * Math.PI * 2;
+                this.spin = (Math.random() - 0.5) * 0.018;
+                this.col = Math.random() < 0.38
+                    ? `rgba(200,0,10,${(Math.random() * 0.1 + 0.03).toFixed(3)})`
+                    : `rgba(160,128,96,${(Math.random() * 0.09 + 0.03).toFixed(3)})`;
+            }
+            update() {
+                this.x += this.vx + Math.sin(Date.now() * 0.0007 + this.y * 0.01) * 0.25;
+                this.y += this.vy; this.angle += this.spin;
+                if (this.y > H + 20) this.reset(false);
+            }
+            draw() {
+                ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.angle);
+                ctx.fillStyle = this.col; ctx.beginPath();
+                ctx.ellipse(0, 0, this.size, this.size * 0.42, 0, 0, Math.PI * 2);
+                ctx.fill(); ctx.restore();
+            }
+        }
+        const petals = Array.from({ length: 55 }, () => new Petal(true));
+        function loop() { ctx.clearRect(0, 0, W, H); petals.forEach(p => { p.update(); p.draw() }); requestAnimationFrame(loop); }
+        loop();
+
+        /* ─── Counter animation ─── */
+        const counterEl = document.getElementById('counterNum');
+        const TARGET = 78;
+        let started = false;
+        const observer = new IntersectionObserver(entries => {
+            if (entries[0].isIntersecting && !started) {
+                started = true;
+                const duration = 1800; const start = performance.now();
+                const ease = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+                function tick(now) {
+                    const progress = Math.min((now - start) / duration, 1);
+                    counterEl.textContent = Math.round(ease(progress) * TARGET).toLocaleString();
+                    if (progress < 1) requestAnimationFrame(tick);
+                }
+                requestAnimationFrame(tick);
+            }
+        }, { threshold: 0.4 });
+        observer.observe(counterEl);
+
+        /* ─── Card stagger entrance ─── */
+        document.querySelectorAll('.social-card').forEach((card, i) => {
+            card.style.opacity = '0'; card.style.transform = 'translateY(28px)';
+            card.style.transition = 'opacity 0.6s ease,transform 0.6s cubic-bezier(0.22,1,0.36,1),box-shadow 0.35s,border-color 0.3s';
+            setTimeout(() => { card.style.opacity = '1'; card.style.transform = 'translateY(0)'; }, 2000 + i * 115);
+        });
+    </script>
+</body>
+
+</html>
